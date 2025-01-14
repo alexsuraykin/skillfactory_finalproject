@@ -1,0 +1,14 @@
+version: "2"
+sql:
+  - name: "queries"
+    engine: "postgresql"
+    queries: "internal/storage/queries_src"
+    schema: "internal/storage/migrations"
+    gen:
+      go:
+        package: "queries"
+        out: "internal/storage/queries"
+        sql_package: "pgx/v5"
+        overrides:
+          - column: public.comments.created_at
+            go_type: "time.Time"

@@ -1,0 +1,232 @@
+openapi: "3.0.0"
+info:
+  version: 0.0.1
+  title: skillfactory_final_project
+  description: GO-35 Maksimov Denis
+  contact:
+    url: https://skillfactory.ru/
+
+servers:
+  - url: /api
+
+tags:
+  - name: feeds
+  - name: comments
+
+paths:
+  /feeds:
+
+    get:
+      description: Get all feeds.
+      operationId: feeds
+      tags:
+        - feeds
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Title"
+        - $ref: "#/components/parameters/Filter"
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: List of feeds.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feeds'
+
+  /feeds/{id}:
+
+    get:
+      description: Get feeds by id.
+      operationId: feedsById
+      tags:
+        - feeds
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Feeds by id.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FeedsById'
+
+  /comments:
+
+    get:
+      description: Get all comments.
+      operationId: getAllComments
+      tags:
+        - comments
+      responses:
+        '200':
+          description: A list of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+
+    post:
+      description: Create comment.
+      operationId: createComment
+      tags:
+        - comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateComment'
+      responses:
+        '200':
+          description: ok
+
+  /swagger:
+    get:
+      description: Swagger file
+      operationId: getSwagger
+      tags:
+        - probe
+      responses:
+        '200':
+          description: content of swagger file
+
+components:
+  schemas:
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID of the comment (if any)
+        NewsID:
+          type: integer
+          description: ID of the associated news item
+          format: int32
+        ParentCommentID:
+          type: integer
+          description: ID of the parent comment (if any)
+          format: int32
+        content:
+          type: string
+          description: Content of the comment
+        CreatedAt:
+          type: string
+          description: Content of the comment
+      required:
+        - id 
+        - NewsID
+        - content
+        - CreatedAt
+
+    CreateComment:
+      type: object
+      properties:
+        NewsID:
+          type: integer
+          description: ID of the associated news item
+        ParentCommentID:
+          type: integer
+          description: ID of the parent comment (if any)
+          nullable: true
+        content:
+          type: string
+          description: Content of the comment
+      required:
+        - NewsID
+        - content
+
+    Feeds:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Feeds ID
+        title:
+          type: string
+          description: Title of feeds (if any)
+        content:
+          type: string
+          description: Content of the feeds
+        link:
+          type: string
+          description: Link of the feeds
+        pub_date:
+          type: string
+          description: Publication date
+      required:
+        - id
+        - title
+        - content
+        - link
+        - pub_date
+
+    FeedsById:
+      type: object
+      properties:
+        feeds:
+          $ref: '#/components/schemas/Feeds'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+      required:
+        - feeds
+        - comments
+
+  parameters:
+    ID:
+      name: id
+      in: path
+      description: id of object
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+    Page:
+      name: page
+      in: query
+      description: the number of current page
+      required: false
+      schema:
+        type: integer
+        format: int64
+        default: 1
+
+    Title:
+      name: title
+      in: query
+      description: title of news
+      required: false
+      schema:
+        type: string
+        format: string
+        default: ""
+
+    Filter:
+      name: filter
+      in: query
+      description: filter of content news
+      required: false
+      schema:
+        type: string
+        format: string
+        default: ""
+
+    RequestId:
+      name: request_id
+      in: query
+      description: request_id 
+      required: false
+      schema:
+        type: string
+        format: string
+        default: ""

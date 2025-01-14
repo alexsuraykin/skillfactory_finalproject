@@ -1,0 +1,101 @@
+services:
+  news:
+    build: ./SkillFactory_News
+    restart: always
+    ports:
+      - 8883:8883
+    depends_on:
+      - db-news
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8883
+      - PG_DSN=postgres://admin:admin@db-news:5432/feeds?sslmode=disable
+    networks:
+      - my_custom_network
+
+  comments:
+    build: ./SkillFactory_Comments
+    restart: always
+    ports:
+      - 8882:8882
+    depends_on:
+      - db-comments
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8882
+      - PG_DSN=postgres://admin:admin@db-comments:5432/comments?sslmode=disable
+    networks:
+      - my_custom_network
+
+  censorship:
+    build: ./SkillFactory_Censorship
+    restart: always
+    ports:
+      - 8884:8884
+    depends_on:
+      - deep-pavlov
+    environment:
+      - SERVER_PORT=8884
+    networks:
+      - my_custom_network
+
+  controller:
+    build: ./SkillFactory_APIGateway
+    restart: always
+    ports:
+      - 8881:8881
+    depends_on:
+      - comments
+      - censorship
+      - db-comments
+      - deep-pavlov
+    environment:
+      - SERVER_PORT=8881
+      - SERVER_HOST=0.0.0.0
+    networks:
+      - my_custom_network
+
+  db-news:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=feeds
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - 5433:5432
+    networks:
+      - my_custom_network
+
+  db-comments:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=comments
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - 5432:5432
+    networks:
+      - my_custom_network
+
+  deep-pavlov:
+    image: deeppavlov/base-cpu
+    restart: always
+    ports:
+      - 5000:5000
+    environment:
+      - CONFIG=rusentiment_convers_bert
+    volumes:
+      - ~/my_dp_components:/root/.deeppavlov
+      - ~/my_dp_envs:/venv
+    networks:
+      - my_custom_network
+
+networks:
+  my_custom_network:
+    driver: bridge
